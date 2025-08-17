@@ -30,7 +30,7 @@ jobs:
       # Step 4: Build and push Docker image to ECR
       - name: Build, tag, and push image
         run: |
-          IMAGE_URI=123456789012.dkr.ecr.us-east-2.amazonaws.com/devops-notes-app:latest
+          IMAGE_URI=888762633130.dkr.ecr.us-east-2.amazonaws.com/devops-notes-app:latest
           docker build -t $IMAGE_URI .
           docker push $IMAGE_URI
 
