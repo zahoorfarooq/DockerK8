@@ -1,47 +1,37 @@
-name: CI-CD to EKS
+name: Deploy to EKS
 
 on:
   push:
     branches:
-      - main # Runs only when you push to main branch
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout repo code
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Configure AWS credentials from GitHub Secrets
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2 # <-- Make sure this is your region
+          aws-region: us-east-2
 
-      # Step 3: Authenticate Docker to ECR
       - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      # Step 4: Build and push Docker image to ECR
-      - name: Build, tag, and push image
         run: |
-          IMAGE_URI=888762633130.dkr.ecr.us-east-2.amazonaws.com/devops-notes-app:latest
-          docker build -t $IMAGE_URI .
-          docker push $IMAGE_URI
+          aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 888762633130.dkr.ecr.us-east-2.amazonaws.com
 
-      # Step 5: Update kubeconfig to access EKS
-      - name: Update kubeconfig for EKS
-        run: |
-          aws eks update-kubeconfig --name my-cluster-name --region us-east-2
-
-      # Step 6: Deploy updated image to EKS
       - name: Build and push Docker image
         run: |
           IMAGE_URI=888762633130.dkr.ecr.us-east-2.amazonaws.com/devops-notes-app:latest
           docker build -t $IMAGE_URI ./devops-notes-app
           docker push $IMAGE_URI
+
+      - name: Update K8s deployment
+        run: |
+          aws eks update-kubeconfig --name my-cluster --region us-east-2
+          kubectl set image deployment/notes-deployment notes=888762633130.dkr.ecr.us-east-2.amazonaws.com/devops-notes-app:latest
+          kubectl rollout status deployment/notes-deployment
