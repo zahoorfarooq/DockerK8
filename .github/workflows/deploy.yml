@@ -32,6 +32,6 @@ jobs:
 
       - name: Update K8s deployment
         run: |
-          aws eks update-kubeconfig --name my-cluster --region us-east-2
+          aws eks update-kubeconfig --name devops-notes-cluster --region us-east-2
           kubectl set image deployment/notes-deployment notes=888762633130.dkr.ecr.us-east-2.amazonaws.com/devops-notes-app:latest
           kubectl rollout status deployment/notes-deployment
